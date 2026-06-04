@@ -6,7 +6,7 @@ import { Wallet } from 'lucide-react'
 
 export default function Auth() {
   const [tab, setTab] = useState('login')
-  const [form, setForm] = useState({ username: '', email: '', password: '' })
+  const [form, setForm] = useState({ username: '', email: '', password: '', confirm_password: '' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const { login } = useAuth()
@@ -37,7 +37,7 @@ export default function Auth() {
     try {
       await axios.post('/signup', form)
       setTab('login')
-      setForm((f) => ({ ...f, email: '', password: '' }))
+      setForm((f) => ({ ...f, email: '', password: '', confirm_password: '' }))
       setError('')
     } catch (err) {
       setError(err.response?.data?.detail || 'Signup failed')
@@ -137,10 +137,22 @@ export default function Auth() {
                 <input
                   type="password"
                   required
-                  minLength={6}
+                  minLength={8}
                   className="input-field"
                   value={form.password}
                   onChange={(e) => set('password', e.target.value)}
+                  placeholder="••••••••"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-muted mb-1">Confirm Password</label>
+                <input
+                  type="password"
+                  required
+                  minLength={8}
+                  className="input-field"
+                  value={form.confirm_password}
+                  onChange={(e) => set('confirm_password', e.target.value)}
                   placeholder="••••••••"
                 />
               </div>
