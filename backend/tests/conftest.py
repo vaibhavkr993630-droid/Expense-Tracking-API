@@ -6,6 +6,7 @@ from sqlalchemy.pool import StaticPool
 from app.dependencies.database import get_db
 from app.db import Base
 from app.main import app
+from app.limiter import limiter
 from tests.utils import create_user_for_test
 
 
@@ -27,6 +28,14 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engin
 
 # Create all tables at the start of testing
 Base.metadata.create_all(bind=engine)
+
+
+# Disable rate limiting for all tests
+@pytest.fixture(autouse=True)
+def disable_rate_limit():
+    limiter.enabled = False
+    yield
+    limiter.enabled = True
 
 
 

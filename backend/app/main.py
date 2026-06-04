@@ -23,9 +23,9 @@ app = FastAPI(
                 export data as CSV/PDF, set monthly budgets with spending alerts,
                 and manage their profiles for a personalized experience.""",
     contact={
-        "name": "Abel Tomás",
-        "url": "https://github.com/Tomu98",
-        "email": "abeltomasr98@gmail.com"
+        "name": "vaibhavkr993630-droid",
+        "url": "https://github.com/vaibhavkr993630-droid",
+        "email": "vaibhav.kr993630@gmail.com"
     }
 )
 

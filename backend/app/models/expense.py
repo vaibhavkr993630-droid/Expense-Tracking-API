@@ -1,5 +1,5 @@
 from app.db import Base
-from sqlalchemy import Column, Integer, String, DECIMAL, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, DECIMAL, Date, ForeignKey
 
 
 class Expense(Base):
@@ -12,4 +12,4 @@ class Expense(Base):
     amount = Column(DECIMAL(10, 2), nullable=False)
     category = Column(String(50), nullable=False)
     description = Column(String(200))
-    date = Column(DateTime, nullable=False)
+    date = Column(Date, nullable=False)
