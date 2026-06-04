@@ -3,8 +3,11 @@ from fastapi.responses import StreamingResponse
 from app.dependencies.auth import user_dependency
 from app.dependencies.database import db_dependency
 from app.models.expense import Expense
+from app.models.budget import Budget
 from app.schemas.expense import AddExpense, UpdateExpense
+from app.email_utils import send_budget_alert_email
 from datetime import date, timedelta, datetime
+from sqlalchemy import func, extract
 import csv
 import io
 from fpdf import FPDF
@@ -13,6 +16,44 @@ from fpdf import FPDF
 router = APIRouter(
     tags=["Expenses"]
 )
+
+
+def _check_and_notify(user, db, month: int, year: int):
+    budgets = db.query(Budget).filter(
+        Budget.user_id == user.id,
+        Budget.month == month,
+        Budget.year == year,
+    ).all()
+    if not budgets:
+        return
+
+    spending_rows = db.query(
+        Expense.category,
+        func.sum(Expense.amount).label("total"),
+    ).filter(
+        Expense.user_id == user.id,
+        extract("month", Expense.date) == month,
+        extract("year", Expense.date) == year,
+    ).group_by(Expense.category).all()
+
+    spending_map = {row.category: float(row.total) for row in spending_rows}
+
+    alerts = []
+    for b in budgets:
+        limit = float(b.amount)
+        spent = spending_map.get(b.category, 0.0)
+        pct = round(spent / limit * 100, 2) if limit > 0 else 0.0
+        status_val = "exceeded" if spent > limit else ("warning" if pct >= 80 else "ok")
+        alerts.append({
+            "category": b.category,
+            "budget_limit": round(limit, 2),
+            "spent": round(spent, 2),
+            "remaining": round(limit - spent, 2),
+            "percentage_used": pct,
+            "status": status_val,
+        })
+
+    send_budget_alert_email(user.email, user.username, alerts, month, year)
 
 
 # Read all expenses
@@ -116,6 +157,8 @@ async def add_expense(user: user_dependency, expense: AddExpense, db: db_depende
     db.commit()
     db.refresh(new_expense)
 
+    _check_and_notify(user, db, new_expense.date.month, new_expense.date.year)
+
     return {"message": f"Expense ${new_expense.amount} added.", "id": new_expense.id}
 
 
@@ -149,6 +192,9 @@ async def update_expense(user: user_dependency, expense: UpdateExpense, db: db_d
 
     db.add(check_expense)
     db.commit()
+    db.refresh(check_expense)
+
+    _check_and_notify(user, db, check_expense.date.month, check_expense.date.year)
 
     return {"message": f"Expense with ID {id} successfully updated."}
 
