@@ -1,0 +1,35 @@
+version: "3.9"
+
+services:
+
+  db:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: expenseuser
+      POSTGRES_PASSWORD: expensepass
+      POSTGRES_DB: expense_tracker
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U expenseuser -d expense_tracker"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://expenseuser:expensepass@db/expense_tracker
+      SECRET_KEY: ${SECRET_KEY:-expense-tracker-secret-key-change-in-production-32chars}
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

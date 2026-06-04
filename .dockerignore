@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.coverage
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Secrets (set via docker-compose environment section instead)
+.env
+*.env
+
+# Backend: only app/ is needed — exclude tests and alembic
+backend/tests/
+backend/alembic/
+backend/alembic.ini
+
+# Frontend: only the built dist/ is needed (built in stage 1)
+# All source files are excluded here; stage 1 handles them separately
+frontend/node_modules/
+
+# Database files
+*.db
+*.sqlite3
+
+# Git + docs
+.git/
+.gitignore
+README*.html
+README*.md
